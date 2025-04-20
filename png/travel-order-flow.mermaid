@@ -1,0 +1,41 @@
+flowchart TD
+    A[Kreiranje zahteva za putni nalog] --> B[Unos destinacije i datuma putovanja]
+    B --> C[Unos svrhe putovanja i detalja]
+    C --> D[Sistem automatski izračunava dnevnice]
+    D --> E[Unos procenjenih troškova putovanja]
+    E --> F[Slanje na odobrenje]
+    
+    F --> G{Odluka menadžera}
+    G -->|Odbijeno| H[Vraćanje na doradu]
+    H --> I{Odustajanje?}
+    I -->|Da| J[Zatvaranje zahteva]
+    I -->|Ne| C
+    
+    G -->|Odobreno| K[Odobravanje putnog naloga]
+    K --> L[Generisanje PDF dokumenta]
+    L --> M[Obaveštenje zaposlenom]
+    
+    M --> N[Putovanje]
+    
+    N --> O[Unos stvarnih troškova]
+    O --> P[Skeniranje računa za troškove]
+    P --> Q[Povezivanje troškova sa putnim nalogom]
+    
+    Q --> R[Kompletiranje putnog naloga]
+    R --> S[Slanje na konačno odobrenje]
+    
+    S --> T{Konačno odobrenje}
+    T -->|Potrebne korekcije| U[Povratak na unos troškova]
+    U --> O
+    
+    T -->|Odobreno| V[Putni nalog zatvoren]
+    V --> W[Generisanje putnog izveštaja]
+    W --> X[Prenos u računovodstvo]
+    X --> Y[Obračun i isplata]
+    
+    style A fill:#d1f0ff,stroke:#0099cc
+    style K fill:#d4ffcc,stroke:#00cc66
+    style H fill:#ffe6e6,stroke:#cc0000
+    style V fill:#d4ffcc,stroke:#00cc66
+    style N fill:#fff2cc,stroke:#ffcc00
+    style Y fill:#f0e6ff,stroke:#8000cc

@@ -1,0 +1,43 @@
+flowchart TD
+    A[Fotografisanje računa] --> B[Poboljšanje kvaliteta slike]
+    B --> C[Upload slike na server]
+
+    subgraph OCR Service
+        D[Pretprocesiranje slike] --> E[Detekcija ivica i ispravljanje perspektive]
+        E --> F[OCR prepoznavanje teksta]
+        F --> G[Parsiranje prepoznatog teksta]
+        G --> H{Prepoznati ključni podaci?}
+        H -->|Ne| I[Primena templates za poznate račune]
+        I --> J{Poklapanje sa šablonom?}
+        J -->|Da| K[Izvlačenje podataka na osnovu šablona]
+        J -->|Ne| L[Primena naprednih algoritama prepoznavanja]
+        H -->|Da| M[Strukturiranje podataka]
+        K --> M
+        L --> M
+        M --> N[Validacija podataka]
+        N --> O{Podaci validni?}
+        O -->|Ne| P[Označavanje za ručnu obradu]
+        O -->|Da| Q[Kalkulacija sigurnosti prepoznavanja]
+    end
+
+    C --> D
+    Q --> R[Vraćanje rezultata korisniku]
+    P --> R
+    
+    R --> S{Potrebna korekcija?}
+    S -->|Da| T[Korisnička korekcija podataka]
+    S -->|Ne| U[Potvrda podataka]
+    T --> U
+    
+    U --> V[Kreiranje troška]
+    V --> W[Primena kategorizacija na osnovu prepoznavanja]
+    W --> X[Čuvanje veze između troška i slike računa]
+    
+    style A fill:#d1f0ff,stroke:#0099cc
+    style F fill:#fff2cc,stroke:#ffcc00
+    style G fill:#fff2cc,stroke:#ffcc00
+    style R fill:#d4ffcc,stroke:#00cc66
+    style OCR fill:#f0e6ff,stroke:#8000cc
+    
+    classDef highlight fill:#f9d4ff,stroke:#cc00cc,stroke-width:2px;
+    class OCR highlight;

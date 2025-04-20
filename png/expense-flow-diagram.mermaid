@@ -1,0 +1,56 @@
+flowchart TD
+    subgraph Mobilna Aplikacija
+        A[Zaposleni skenira račun] --> B[OCR prepoznavanje podataka]
+        B --> C{Podaci ispravni?}
+        C -->|Ne| D[Manuelna korekcija podataka]
+        D --> E
+        C -->|Da| E[Popunjavanje dodatnih informacija]
+        E --> F[Čuvanje u offline režimu ako nema interneta]
+        F --> G[Sinhronizacija kada je internet dostupan]
+    end
+
+    subgraph Backend Sistem
+        G --> H[Prijem i validacija podataka]
+        H --> I[Primenjena poslovna pravila i politike]
+        I --> J{U skladu sa politikom?}
+        J -->|Ne| K[Označen kao odstupanje]
+        K --> L
+        J -->|Da| L[Kreiranje troška u sistemu]
+        L --> M[Pokretanje toka odobrenja]
+    end
+
+    subgraph Web Aplikacija - Odobravanje
+        M --> N[Obaveštenje menadžeru o troškovima za odobrenje]
+        N --> O[Menadžer pregleda detalje troška]
+        O --> P{Potrebno više informacija?}
+        P -->|Da| Q[Zahtev za dodatne informacije]
+        Q --> R[Obaveštenje zaposlenom]
+        R --> E
+        P -->|Ne| S{Odluka?}
+        S -->|Odbijen| T[Odbijanje troška sa razlogom]
+        T --> U[Obaveštenje zaposlenom]
+        U --> V{Ponovna prijava?}
+        V -->|Da| E
+        V -->|Ne| W[Trošak zatvoren]
+        S -->|Odobren| X[Trošak odobren]
+    end
+
+    subgraph Računovodstvo i Izveštavanje
+        X --> Y[Priprema za računovodstvo]
+        Y --> Z1[Automatska integracija]
+        Y --> Z2[CSV export]
+        Y --> Z3[API integracija]
+        Z1 --> AA[Računovodstveni sistem]
+        Z2 --> AA
+        Z3 --> AA
+        X --> AB[Uključivanje u izveštaje i analitiku]
+        AB --> AC[Dashboards]
+        AB --> AD[Periodični izveštaji]
+    end
+
+    style A fill:#d1f0ff,stroke:#0099cc
+    style X fill:#d4ffcc,stroke:#00cc66
+    style T fill:#ffe6e6,stroke:#cc0000
+    style AA fill:#f0e6ff,stroke:#8000cc
+    style AC fill:#fff2cc,stroke:#ffcc00
+    style AD fill:#fff2cc,stroke:#ffcc00

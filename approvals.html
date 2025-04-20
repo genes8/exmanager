@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Approvals - Review and manage submitted expenses">
+    <title>Approvals</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #f5f7fa, #e4e9f2); min-height: 100vh; }
+        .container { display: flex; min-height: 100vh; }
+        .header { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: linear-gradient(90deg, #2c3e50, #4ca1af); color: white; height: 70px; z-index: 1000; }
+        .logo { display: flex; align-items: center; }
+        .logo-icon { width: 40px; height: 40px; margin-right: 10px; background: linear-gradient(45deg, #1abc9c, #3498db, #9b59b6, #f1c40f); border-radius: 8px; display: flex; flex-wrap: wrap; overflow: hidden; }
+        .logo-icon-part { width: 50%; height: 50%; }
+        .logo-text { font-weight: bold; font-size: 18px; }
+        .user-area { display: flex; align-items: center; }
+        .user-area > div { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.2); margin-left: 10px; cursor: pointer; }
+        .sidebar { width: 230px; background: rgba(255,255,255,0.9); padding: 90px 15px 20px; border-right: 1px solid rgba(0,0,0,0.1); box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; position: fixed; left: 0; top: 0; bottom: 0; display: flex; flex-direction: column; }
+        .nav-item { display: flex; align-items: center; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; color: #333; transition: all 0.3s; }
+        .nav-icon { width: 24px; margin-right: 10px; display: flex; align-items: center; justify-content: center; }
+        .nav-item:hover, .nav-item.active { background-color: #bbdefb; color: #0d47a1; font-weight: bold; }
+        main { margin-left: 230px; padding: 90px 20px 20px; flex: 1; }
+        .panel { background-color: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 20px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .panel-title { font-size: 20px; font-weight: bold; }
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .filter-bar input, .filter-bar select, .filter-bar button { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; }
+        .expenses-table { width: 100%; border-collapse: collapse; }
+        .expenses-table th, .expenses-table td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+        .expenses-table th { background-color: #f5f5f5; }
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; display: inline-block; }
+        .status-draft { background-color: #e3f2fd; color: #0d47a1; }
+        .status-submitted { background-color: #fff8e1; color: #f57f17; }
+        .status-approved { background-color: #e8f5e9; color: #2e7d32; }
+        .status-rejected { background-color: #ffebee; color: #c62828; }
+        .action-btn { background: none; border: none; color: #3498db; cursor: pointer; font-size: 14px; }
+        
+        /* Tab styling */
+        .tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; }
+        .tab.active { border-color: #ccc; border-bottom-color: white; background-color: white; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Support button at bottom of sidebar */
+        .support-portal {
+            margin-top: auto;
+            padding: 15px;
+            background-color: #ebf7f7;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            border-left: 4px solid #4ca1af;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="logo-icon-part" style="background-color: #1abc9c;"></div>
+                    <div class="logo-icon-part" style="background-color: #3498db;"></div>
+                    <div class="logo-icon-part" style="background-color: #9b59b6;"></div>
+                    <div class="logo-icon-part" style="background-color: #f1c40f;"></div>
+                </div>
+                <div class="logo-text">EXPENSE MANAGEMENT</div>
+            </div>
+            <div class="user-area">
+                <div class="notification-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                </div>
+                <div class="user-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="more-options">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="19" cy="12" r="1"></circle>
+                        <circle cx="5" cy="12" r="1"></circle>
+                    </svg>
+                </div>
+            </div>
+        </header>
+        <aside class="sidebar">
+            <nav aria-label="Main navigation">
+                <div class="nav-item" id="dashboard-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <span>Dashboard</span>
+                </div>
+
+                <div class="nav-item" id="expenses-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                            <line x1="2" y1="10" x2="22" y2="10"></line>
+                        </svg>
+                    </div>
+                    <span>My Expenses</span>
+                </div>
+
+                <div class="nav-item active" id="approvals-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <span>Approvals</span>
+                </div>
+
+                <div class="nav-item" id="travel-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                        </svg>
+                    </div>
+                    <span>Travel Orders</span>
+                </div>
+
+                <div class="nav-item" id="reports-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <span>Reports</span>
+                </div>
+
+                <div class="nav-item" id="categories-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </div>
+                    <span>Categories</span>
+                </div>
+
+                <div class="nav-item" id="settings-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 7h-9"></path>
+                            <path d="M14 17H5"></path>
+                            <circle cx="17" cy="17" r="3"></circle>
+                            <circle cx="7" cy="7" r="3"></circle>
+                        </svg>
+                    </div>
+                    <span>Settings</span>
+                </div>
+            </nav>
+
+            <div class="support-portal">Need Help? Contact Support</div>
+        </aside>
+        <main>
+            <div class="tabs">
+                <div class="tab active" data-tab="pending-approvals">Pending Approvals</div>
+                <div class="tab" data-tab="approval-history">Approval History</div>
+            </div>
+
+            <div id="pending-approvals" class="tab-content active">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Approvals</div>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" placeholder="Search...">
+                        <select><option value="">All Categories</option><option>Travel</option><option>Meals</option><option>Office</option><option>Events</option><option>Software</option></select>
+                        <input type="date">
+                        <button>Apply</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="expenses-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Category</th>
+                                    <th>Merchant</th>
+                                    <th>Notes</th>
+                                    <th>Amount</th>
+                                    <th>Payment Method</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025-04-10</td>
+                                    <td>Travel</td>
+                                    <td>Acme Airlines</td>
+                                    <td>Flight to Berlin</td>
+                                    <td>$450.00</td>
+                                    <td>Company Card</td>
+                                    <td><span class="status status-submitted">Submitted</span></td>
+                                    <td><button class="action-btn" onclick="openApprovalDetail(this)">Review</button></td>
+                                </tr>
+                                <tr>
+                                    <td>2025-03-22</td>
+                                    <td>Software</td>
+                                    <td>SaaS Inc.</td>
+                                    <td>Subscription renewal</td>
+                                    <td>$299.99</td>
+                                    <td>Company Card</td>
+                                    <td><span class="status status-submitted">Submitted</span></td>
+                                    <td><button class="action-btn" onclick="openApprovalDetail(this)">Review</button></td>
+                                </tr>
+                            <!-- TODO: Populate table dynamically from API -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="approval-history" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <div class="panel-title">Approval History</div>
+                    </div>
+                    <div class="filter-bar">
+                        <input type="text" placeholder="Search History...">
+                        <select><option value="">All Categories</option><option>Travel</option><option>Meals</option></select>
+                        <select>
+                            <option value="">All Statuses</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                        <input type="date">
+                        <button>Apply</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="expenses-table">
+                            <thead>
+                                <tr>
+                                    <th>Action Date</th>
+                                    <th>Category</th>
+                                    <th>Merchant</th>
+                                    <th>Amount</th>
+                                    <th>Submitted By</th>
+                                    <th>Status</th>
+                                    <th>Actioned By</th>
+                                    <th>Comment</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>2025-04-11</td>
+                                    <td>Travel</td>
+                                    <td>Acme Airlines</td>
+                                    <td>$450.00</td>
+                                    <td>John Doe</td>
+                                    <td><span class="status status-approved">Approved</span></td>
+                                    <td>Jane Smith (Manager)</td>
+                                    <td>Sve ok.</td>
+                                </tr>
+                                <tr>
+                                    <td>2025-03-25</td>
+                                    <td>Meals</td>
+                                    <td>Downtown Restaurant</td>
+                                    <td>$75.50</td>
+                                    <td>Peter Jones</td>
+                                    <td><span class="status status-rejected">Rejected</span></td>
+                                    <td>Jane Smith (Manager)</td>
+                                    <td>Missing receipt.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+        <!-- Approval Detail Modal -->
+        <div id="approval-modal" class="modal" style="display:none;">
+            <div class="modal-content">
+                <span class="close" onclick="closeApprovalDetail()">&times;</span>
+                <div class="expense-header">
+                    <div class="expense-title">Flight to Berlin</div>
+                    <span class="status status-submitted">Submitted</span>
+                    <button class="action-btn edit-btn">Edit</button>
+                </div>
+                <div class="primary-info-card">
+                    <div><b>Amount:</b> $450.00</div>
+                    <div><b>Category:</b> Travel</div>
+                    <div><b>Date:</b> 2025-04-10</div>
+                    <div><b>Payment:</b> Company Card</div>
+                    <div><b>Submitted by:</b> John Doe on 2025-04-10</div>
+                </div>
+                <div class="receipt-gallery">
+                    <div class="gallery-title">Receipts</div>
+                    <div class="gallery-thumbs">
+                        <img src="/static/receipt1.jpg" alt="Receipt 1" onclick="enlargeReceipt(this)">
+                        <img src="/static/receipt2.jpg" alt="Receipt 2" onclick="enlargeReceipt(this)">
+                    </div>
+                    <button class="action-btn" onclick="downloadReceipts()">Download All</button>
+                </div>
+                <div class="approval-timeline">
+                    <div class="timeline-title">Approval Timeline</div>
+                    <ul>
+                        <li><b>2025-04-10:</b> Submitted by John Doe</li>
+                        <li><b>2025-04-11:</b> Approved by Manager ("Sve ok")</li>
+                    </ul>
+                </div>
+                <div class="notes-comments">
+                    <div class="comments-title">Notes & Comments</div>
+                    <div class="existing-comments">
+                        <div><b>Manager:</b> Sve ok</div>
+                    </div>
+                    <div class="add-comment">
+                        <input type="text" placeholder="Add a comment...">
+                        <button class="action-btn">Add</button>
+                    </div>
+                </div>
+                <div class="action-buttons">
+                    <button class="primary-btn">Recall</button>
+                    <button class="secondary-btn">Delete</button>
+                </div>
+            </div>
+        </div>
+        <script>
+        // Tab switching logic
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const targetTab = tab.getAttribute('data-tab');
+
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+
+                tabContents.forEach(content => {
+                    if (content.id === targetTab) {
+                        content.classList.add('active');
+                    } else {
+                        content.classList.remove('active');
+                    }
+                });
+            });
+        });
+
+        function openApprovalDetail(btn) {
+            document.getElementById('approval-modal').style.display = 'block';
+        }
+        function closeApprovalDetail() {
+            document.getElementById('approval-modal').style.display = 'none';
+        }
+        function enlargeReceipt(img) {
+            window.open(img.src, '_blank');
+        }
+        function downloadReceipts() {
+            alert('Download receipts triggered!');
+        }
+        window.onclick = function(event) {
+            var modal = document.getElementById('approval-modal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+        </script>
+        <style>
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background: rgba(44,62,80,0.25); }
+        .modal-content { background: #fff; margin: 60px auto; padding: 30px 24px; border-radius: 12px; width: 95%; max-width: 560px; position: relative; box-shadow: 0 4px 32px rgba(44,62,80,0.15); }
+        .close { position: absolute; top: 15px; right: 15px; font-size: 28px; color: #999; cursor: pointer; line-height: 1; }
+        .expense-header { display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding-right: 30px; /* Add padding to avoid overlap with close button */ }
+        .expense-title { font-size: 1.2rem; font-weight: bold; flex: 1; }
+        .edit-btn { margin-left: auto; color: #2c3e50; }
+        .primary-info-card { background: #f5f5f5; border-radius: 8px; padding: 12px 16px; margin-bottom: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; font-size: 15px; }
+        .receipt-gallery { margin-bottom: 18px; }
+        .gallery-title { font-weight: bold; margin-bottom: 6px; }
+        .gallery-thumbs { display: flex; gap: 10px; margin-bottom: 6px; }
+        .gallery-thumbs img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid #e0e0e0; cursor: pointer; transition: all .2s; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .gallery-thumbs img:hover { box-shadow: 0 2px 8px #bbdefb; transform: scale(1.05); }
+        .approval-timeline { margin-bottom: 18px; }
+        .timeline-title { font-weight: bold; margin-bottom: 6px; }
+        .approval-timeline ul { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+        .approval-timeline li { margin-bottom: 5px; }
+        .notes-comments { margin-bottom: 18px; }
+        .comments-title { font-weight: bold; margin-bottom: 6px; }
+        .existing-comments { margin-bottom: 8px; font-size: 14px; }
+        .add-comment { display: flex; gap: 8px; }
+        .add-comment input { flex: 1; padding: 7px 10px; border: 1px solid #e0e0e0; border-radius: 6px; }
+        .add-comment button { padding: 7px 18px; border-radius: 6px; background: #2c3e50; color: #fff; border: none; }
+        .action-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+        .primary-btn { background: #2c3e50; color: #fff; border-radius: 6px; border: none; padding: 10px 18px; font-weight: 500; cursor: pointer; }
+        .primary-btn:hover { background: #1e2b38; }
+        .secondary-btn { background: transparent; border: 1px solid #e0e0e0; color: #333; padding: 10px 18px; border-radius: 6px; font-weight: 500; cursor: pointer; }
+        @media (max-width: 640px) {
+            .modal-content { padding: 10px 2px; }
+            .primary-info-card { grid-template-columns: 1fr; gap: 8px; }
+            .gallery-thumbs { gap: 5px; }
+        }
+        </style>
+    </div>
+</body>
+</html>
