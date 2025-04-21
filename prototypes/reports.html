@@ -75,15 +75,46 @@
         /* Builder area */
         .builder-area { min-height: 200px; border: 2px dashed #ccc; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
         /* Scheduled table */
-        .scheduled-table { width: 100%; border-collapse: collapse; }
-        .scheduled-table th, .scheduled-table td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; }
+        .table-container { max-height: 400px; /* Adjust as needed */ overflow-y: auto; border: 1px solid #ddd; margin-top: 15px; }
+        .scheduled-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .scheduled-table th, .scheduled-table td { border: 1px solid #ddd; padding: 10px 12px; text-align: left; }
+        .scheduled-table thead th { background-color: #f2f2f2; font-weight: bold; position: sticky; top: 0; z-index: 1; }
+        .scheduled-table td:last-child { text-align: center; }
+        .scheduled-table .action-btn-group button { margin: 0 3px; padding: 4px 8px; font-size: 12px; cursor: pointer; }
+        .scheduled-table .status-active { color: green; font-weight: bold; }
+        .scheduled-table .status-paused { color: orange; font-weight: bold; }
+        /* Pagination Styles */
+        .pagination-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 15px; }
+        .pagination-controls button { padding: 5px 10px; cursor: pointer; }
         /* Modal */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; }
-        .modal-content { background: white; padding: 20px; border-radius: 8px; width: 300px; }
-        .main-content h1 { margin-bottom: 20px; }
-        
-        /* Custom Report Builder Styles */
-        .report-builder-container { display: flex; gap: 20px; min-height: 400px; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.4); display: none; /* Initially hidden */ align-items: center; justify-content: center; z-index: 100; }
+        .modal-content { background: white; padding: 25px 30px; border-radius: 8px; width: 500px; max-width: 90%; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .modal-content h2 { margin-top: 0; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input[type="text"], .form-group input[type="email"], .form-group select {
+            width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;
+        }
+        .form-group input[readonly] { background-color: #eee; cursor: not-allowed; }
+        .form-group .radio-group label, .form-group .checkbox-group label { margin-right: 15px; font-weight: normal; }
+        .period-details { display: none; /* Hidden by default */ margin-left: 20px; margin-top: 10px; }
+        .period-details label { display: inline-block; margin-right: 10px; }
+        .period-details select { width: auto; padding: 6px 8px; }
+        /* Toggle Switch Styles */
+        .switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #2196F3; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .modal-actions { margin-top: 25px; text-align: right; }
+        .modal-actions button { margin-left: 10px; padding: 8px 15px; cursor: pointer; border-radius: 4px; }
+        .modal-actions .cancel-btn { background-color: #f1f1f1; border: 1px solid #ccc; }
+        /* Preview panel select */
+        .preview-panel select { width: 100%; padding: 8px 12px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 6px; }
+    
+    /* Custom Report Builder Styles */
+    .report-builder-container { display: flex; gap: 20px; min-height: 400px; }
         .field-list-panel { width: 25%; border: 1px solid #eee; border-radius: 6px; padding: 10px; background: #f9f9f9; }
         .drop-zone-panel { width: 45%; border: 1px solid #eee; border-radius: 6px; padding: 10px; display: flex; flex-direction: column; gap: 15px; }
         .preview-panel { width: 30%; border: 1px solid #eee; border-radius: 6px; padding: 10px; background: #f9f9f9; }
@@ -319,23 +350,71 @@
                     </div>
                 </div>
                 <div class="tab-content" id="scheduled">
-                    <button class="action-btn" id="new-schedule-btn">New Schedule</button>
-                    <table class="expenses-table scheduled-table">
-                        <thead>
-                            <tr><th>Name</th><th>Frequency</th><th>Next Run</th><th>Actions</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td>Weekly Expense</td><td>Weekly</td><td>2025-04-28</td><td><button class="action-btn">Edit</button></td></tr>
-                        </tbody>
-                    </table>
-                    <div class="modal" id="schedule-modal" style="display:none;">
-                        <div class="modal-content panel">
-                            <h2>New Schedule</h2>
-                            <label>Name:<input type="text"></label>
-                            <label>Frequency:<select><option>Daily</option><option>Weekly</option><option>Monthly</option></select></label>
-                            <button class="action-btn" id="save-schedule-btn">Save</button>
-                            <button class="action-btn" id="cancel-schedule-btn">Cancel</button>
-                        </div>
+                    <button class="primary" id="new-schedule-btn">+ New Schedule</button>
+                    <div class="table-container">
+                        <table class="scheduled-table">
+                            <thead>
+                                <tr>
+                                    <th>Report</th>
+                                    <th>Period</th>
+                                    <th>Recipients</th>
+                                    <th>Format</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Monthly Spend by Dept</td>
+                                    <td>1× monthly – 1. at 08:00</td>
+                                    <td>anna@acme.com, max@...</td>
+                                    <td>PDF</td>
+                                    <td class="status-active">Aktivan · ✅</td>
+                                    <td class="action-btn-group">
+                                        <button title="Edit">✏️</button>
+                                        <button title="Pause">⏸️</button>
+                                        <button title="Delete">🗑️</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Weekly Team Expenses</td>
+                                    <td>1× weekly – Monday at 09:00</td>   
+                                    <td>team@acme.com</td>
+                                    <td>XLSX</td>
+                                    <td class="status-active">Aktivan · ✅</td>
+                                    <td class="action-btn-group">
+                                        <button title="Edit">✏️</button>
+                                        <button title="Pause">⏸️</button>
+                                        <button title="Delete">🗑️</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Daily Overspending Alert</td>
+                                    <td>1× daily – 18:00</td>
+                                    <td>finance@acme.com</td>
+                                    <td>PDF</td>
+                                    <td class="status-paused">Paused · ⏸️</td>
+                                    <td class="action-btn-group">
+                                        <button title="Edit">✏️</button>
+                                        <button title="Resume">▶️</button>
+                                        <button title="Delete">🗑️</button>
+                                    </td>
+                                </tr>
+                                <tr><td>Report 4</td><td>Daily</td><td>me@...</td><td>PDF</td><td class="status-active">Active · ✅</td><td class="action-btn-group"><button>✏️</button><button>⏸️</button><button>🗑️</button></td></tr>
+                                <tr><td>Report 5</td><td>Weekly</td><td>you@...</td><td>XLSX</td><td class="status-active">Active · ✅</td><td class="action-btn-group"><button>✏️</button><button>⏸️</button><button>🗑️</button></td></tr>
+                                <tr><td>Report 6</td><td>Monthly</td><td>him@...</td><td>PDF</td><td class="status-active">Active · ✅</td><td class="action-btn-group"><button>✏️</button><button>⏸️</button><button>🗑️</button></td></tr>
+                                <tr><td>Report 7</td><td>Daily</td><td>her@...</td><td>XLSX</td><td class="status-paused">Paused · ⏸️</td><td class="action-btn-group"><button>✏️</button><button>▶️</button><button>🗑️</button></td></tr>
+                                <tr><td>Report 8</td><td>Weekly</td><td>them@...</td><td>PDF</td><td class="status-active">Active · ✅</td><td class="action-btn-group"><button>✏️</button><button>⏸️</button><button>🗑️</button></td></tr>
+                                <tr><td>Report 9</td><td>Monthly</td><td>us@...</td><td>XLSX</td><td class="status-active">Active · ✅</td><td class="action-btn-group"><button>✏️</button><button>⏸️</button><button>🗑️</button></td></tr>
+                                <tr><td>Report 10</td><td>Daily</td><td>all@...</td><td>PDF</td><td class="status-active">Active · ✅</td><td class="action-btn-group"><button>✏️</button><button>⏸️</button><button>🗑️</button></td></tr>
+                                <tr><td>Report 11</td><td>Weekly</td><td>one@...</td><td>XLSX</td><td class="status-active">Active · ✅</td><td class="action-btn-group"><button>✏️</button><button>⏸️</button><button>🗑️</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-controls">
+                        <button id="prev-page" disabled>&lt; Prev</button>
+                        <span>Page <span id="current-page">1</span> of <span id="total-pages">11</span></span>
+                        <button id="next-page">Next &gt;</button>
                     </div>
                 </div>
             </div>
@@ -478,13 +557,123 @@
                 });
                 // Schedule modal logic
                 document.getElementById('new-schedule-btn').addEventListener('click', () => {
-                    document.getElementById('schedule-modal').style.display = 'block';
+                    document.getElementById('schedule-modal').style.display = 'flex';
                 });
                 document.getElementById('cancel-schedule-btn').addEventListener('click', () => {
                     document.getElementById('schedule-modal').style.display = 'none';
                 });
+                // Hide modal on background click
+                document.getElementById('schedule-modal').addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('schedule-modal')) { // Check if click is on the background itself
+                        document.getElementById('schedule-modal').style.display = 'none';
+                    }
+                });
+                // Show/hide period details based on radio selection
+                const periodRadios = document.querySelectorAll('input[name="period"]');
+                const weeklyDetails = document.getElementById('weekly-details');
+                const monthlyDetails = document.getElementById('monthly-details');
+
+                function togglePeriodDetails() {
+                     const selectedPeriod = document.querySelector('input[name="period"]:checked').value;
+                     weeklyDetails.style.display = selectedPeriod === 'weekly' ? 'block' : 'none';
+                     monthlyDetails.style.display = selectedPeriod === 'monthly' ? 'block' : 'none';
+                }
+                periodRadios.forEach(radio => radio.addEventListener('change', togglePeriodDetails));
+                togglePeriodDetails(); // Initial call to set correct visibility
+
+                // Handle form submission (placeholder)
+                document.getElementById('new-schedule-form').addEventListener('submit', (e) => {
+                    e.preventDefault(); // Prevent actual form submission
+                    console.log('Form submitted (placeholder). Data:', Object.fromEntries(new FormData(e.target).entries()));
+                    // TODO: Add actual save logic and toast notification
+                    document.getElementById('schedule-modal').style.display = 'none'; // Close modal on save
+                });
             </script>
         </main>
+    </div>
+    <!-- New Schedule Modal -->
+    <div class="modal" id="schedule-modal">
+        <div class="modal-content">
+            <h2>New Schedule</h2>
+            <form id="new-schedule-form">
+                <div class="form-group">
+                    <label for="schedule-report">Report</label>
+                    <select id="schedule-report" name="report">
+                        <option value="">-- Select Report --</option>
+                        <optgroup label="Standard Reports">
+                            <option value="std_exp_cat">Expense by Category</option>
+                            <option value="std_spend_trends">Spending Trends</option>
+                            <option value="std_top_vendors">Top Vendors</option>
+                        </optgroup>
+                        <optgroup label="Custom Reports">
+                            <!-- Populate custom reports dynamically later -->
+                            <option value="custom_report_1">My Custom Report 1</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Period</label>
+                    <div class="radio-group">
+                        <label><input type="radio" name="period" value="daily" checked> Daily</label>
+                        <label><input type="radio" name="period" value="weekly"> Weekly</label>
+                        <label><input type="radio" name="period" value="monthly"> Monthly</label>
+                    </div>
+                    <div class="period-details" id="weekly-details">
+                        <label for="weekly-day">Day:</label>
+                        <select id="weekly-day" name="weekly_day">
+                            <option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option><option value="0">Sunday</option>
+                        </select>
+                    </div>
+                    <div class="period-details" id="monthly-details">
+                        <label for="monthly-day">Day:</label>
+                        <select id="monthly-day" name="monthly_day">
+                            <!-- Generate options 1-31 -->
+                            <script>for(let i=1; i<=31; i++) document.write(`<option value="${i}">${i}</option>`);</script>
+                            <option value="last">Last Day</option>
+                        </select>
+                    </div>
+                    <div class="period-details" id="time-details" style="display: block;"> <!-- Time shown always -->
+                         <label for="schedule-time">Time:</label>
+                         <select id="schedule-time" name="time">
+                             <!-- Generate time options -->
+                             <script>for(let h=0; h<24; h++) { let hour = h.toString().padStart(2,'0'); document.write(`<option value="${hour}:00">${hour}:00</option>`); document.write(`<option value="${hour}:30">${hour}:30</option>`); }</script>
+                         </select>
+                    </div>
+                </div>
+
+                 <div class="form-group">
+                    <label for="schedule-timezone">Time zone</label>
+                    <input type="text" id="schedule-timezone" name="timezone" value="Europe/Belgrade" readonly>
+                </div>
+
+                <div class="form-group">
+                    <label>Format</label>
+                    <div class="checkbox-group">
+                        <label><input type="checkbox" name="format" value="pdf" checked> PDF</label>
+                        <label><input type="checkbox" name="format" value="xlsx"> XLSX</label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="schedule-recipients">Recipients (comma-separated)</label>
+                    <input type="email" multiple id="schedule-recipients" name="recipients" placeholder="e.g., anna@acme.com, team@acme.com">
+                </div>
+
+                <div class="form-group">
+                    <label for="schedule-active">Active?</label>
+                    <label class="switch">
+                        <input type="checkbox" id="schedule-active" name="active" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="cancel-btn" id="cancel-schedule-btn">Cancel</button>
+                    <button type="submit" class="primary" id="save-schedule-btn">Save Schedule</button>
+                </div>
+            </form>
+        </div>
     </div>
 </body>
 </html>
