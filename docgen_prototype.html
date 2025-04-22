@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DocGen One‑Pager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="h-full bg-gray-50 font-sans">
+  <div class="min-h-full flex flex-col">
+    <!-- Header -->
+    <header class="bg-white shadow p-4">
+      <h1 class="text-2xl font-semibold text-gray-800">DocGen</h1>
+    </header>
+
+    <!-- Main -->
+    <main class="flex-1 container mx-auto p-6 grid lg:grid-cols-3 gap-6">
+      <!-- Idea Input Card -->
+      <section class="lg:col-span-1 bg-white rounded-2xl shadow p-6 flex flex-col">
+        <h2 class="text-lg font-medium mb-2">Describe Your Idea</h2>
+        <textarea id="idea" rows="8" placeholder="e.g. SaaS for delivering interactive coding lessons…" class="flex-1 resize-none p-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-indigo-500"></textarea>
+        <!-- Granularity Slider -->
+        <label for="depth" class="mt-4 text-sm font-medium text-gray-700">Detail Level</label>
+        <input type="range" id="depth" min="1" max="3" value="2" class="w-full accent-indigo-500">
+        <div class="flex justify-between text-xs text-gray-500 mb-4">
+          <span>Essential</span><span>Recommended</span><span>Comprehensive</span>
+        </div>
+        <button class="mt-auto py-3 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 transition">Generate Checklist</button>
+      </section>
+
+      <!-- Checklist Output -->
+      <section class="lg:col-span-2 bg-white rounded-2xl shadow p-6">
+        <h2 class="text-lg font-medium mb-4">Your Documentation Checklist</h2>
+        <ul id="results" class="space-y-4 text-sm text-gray-800">
+          <!-- Dynamically injected list items -->
+          <li class="animate-pulse text-gray-400">Waiting for your idea…</li>
+        </ul>
+
+        <div class="mt-6 flex gap-3">
+          <button class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Export Markdown</button>
+          <button class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Download PDF</button>
+          <button class="px-4 py-2 rounded-lg border border-gray-300 hover:bg-gray-100">Send to Trello</button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white p-4 text-center text-xs text-gray-500">
+      © 2025 DocGen • Built with FastAPI & OpenAI
+    </footer>
+  </div>
+</body>
+</html>
