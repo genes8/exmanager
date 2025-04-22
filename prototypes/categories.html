@@ -42,7 +42,7 @@ main h1 {
         
         /* Tab styling */
         .tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
-        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; font-size: 1rem; color: #333; background-color: transparent; }
         .tab.active { border-color: #ccc; border-bottom-color: white; background-color: white; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -255,12 +255,11 @@ main h1 {
             <div class="support-portal">Need Help? Contact Support</div>
         </aside>
         <main class="main-content">
-            <h1>Categories & Tags Management</h1>
+            <h1>Categories</h1>
 
             <div class="tabs-wrapper">
                 <div class="tabs">
                     <button class="tab active" data-tab="categories-pane">Expense Categories</button>
-                    <button class="tab" data-tab="tags-pane">Manage Tags</button>
                 </div>
 
                 <div id="categories-pane" class="tab-content active">
@@ -316,35 +315,6 @@ main h1 {
                     </div>
                 </div>
 
-                <div id="tags-pane" class="tab-content">
-                    <h2>Manage Tags</h2>
-                    <div class="content-area panel">
-                        <div class="tag-controls">
-                             <input type="search" placeholder="Filter tags...">
-                        </div>
-                        <div class="tag-chips-zone">
-                            <span class="tag-chip" tabindex="0" data-id="12">
-                                Meals
-                                <button class="edit" aria-label="Edit Meals">✏️</button>
-                                <button class="delete" aria-label="Delete Meals">🗑️</button>
-                            </span>
-                             <span class="tag-chip" tabindex="0" data-id="13">
-                                Project Alpha
-                                <button class="edit" aria-label="Edit Project Alpha">✏️</button>
-                                <button class="delete" aria-label="Delete Project Alpha">🗑️</button>
-                            </span>
-                             <span class="tag-chip" tabindex="0" data-id="14">
-                                Urgent
-                                <button class="edit" aria-label="Edit Urgent">✏️</button>
-                                <button class="delete" aria-label="Delete Urgent">🗑️</button>
-                            </span>
-                            <!-- Add New Tag placeholder -->
-                            <button class="add-new-tag-chip" aria-label="Add New Tag">+ New Tag</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Placeholder for Modals -->
             <div id="category-modal" class="modal">
                  <!-- Modal content for New/Edit Category -->
@@ -397,28 +367,27 @@ main h1 {
             }
             .tabs {
                 display: flex;
-                border-bottom: 2px solid #eee;
-                margin-bottom: 15px;
+                border-bottom: 1px solid #ccc;
+                margin-bottom: 20px;
             }
             .tab {
                 padding: 10px 20px;
                 cursor: pointer;
-                border: none;
-                background: none;
-                border-bottom: 2px solid transparent;
-                margin-bottom: -2px; /* Overlap border */
+                background-color: transparent; 
+                border: 1px solid transparent;
+                border-bottom: none;
+                margin-bottom: -1px; /* Overlap border */
                 font-size: 1rem;
-                color: #666;
+                color: #333;
             }
             .tab.active {
-                border-bottom-color: #4ca1af; /* Accent color */
-                color: #333;
-                font-weight: 600;
+                border-color: #ccc;
+                border-bottom-color: white;
+                background-color: white;
+                border-top-left-radius: 6px;
+                border-top-right-radius: 6px;
+                font-weight: bold;
             }
-            .tab:hover {
-                 background-color: #f9f9f9;
-            }
-
             .tab-content {
                 display: none;
             }
@@ -591,6 +560,10 @@ main h1 {
                 font-weight: bold;
                 cursor: pointer;
              }
+                #modal-title {
+                text-align: center;
+            }
+
 
             .btn {
                 padding: 10px 15px; 
@@ -618,6 +591,107 @@ main h1 {
             }
             .btn-secondary {
                 background-color: #e0e0e0;
+            }
+
+            /* Manage Tags Pane Specific Styles */
+            .tag-controls {
+                margin-bottom: 15px;
+            }
+            #tag-search {
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                width: 100%;
+                max-width: 300px; /* Limit search bar width */
+            }
+            .tag-chips-container {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 10px;
+                background-color: #f8f9fa; /* Light background for the container */
+                border-radius: 8px;
+                border: 1px solid #e9ecef;
+            }
+            .tag-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                background-color: #e9ecef; /* Default light gray */
+                color: #495057;
+                padding: 5px 10px;
+                border-radius: 15px; /* Rounded chips */
+                font-size: 14px;
+                cursor: default; /* Default cursor, specific buttons are pointers */
+                transition: background-color 0.2s, box-shadow 0.2s;
+                border: 1px solid transparent;
+            }
+            .tag-chip:hover {
+                background-color: #ced4da; /* Darker gray on hover */
+            }
+            .tag-chip:focus-within {
+                outline: 2px solid #4ca1af; /* Accent color outline */
+                outline-offset: 1px;
+                border-color: #adb5bd;
+                box-shadow: 0 0 0 3px rgba(76, 161, 175, 0.2);
+            }
+            .tag-chip button {
+                background: none;
+                border: none;
+                padding: 0 2px;
+                cursor: pointer;
+                font-size: 1em;
+                opacity: 0.6; /* Slightly transparent */
+                transition: opacity 0.2s;
+            }
+            .tag-chip:hover button, .tag-chip:focus-within button {
+                 opacity: 1; /* Fully visible on hover/focus */
+            }
+            .tag-chip button:hover {
+                transform: scale(1.1); /* Slight scale effect on button hover */
+            }
+             /* Style for the editing state */
+             .tag-chip-editing .tag-name,
+             .tag-chip-editing .edit,
+             .tag-chip-editing .delete {
+                 display: none;
+             }
+             .tag-chip .edit-input,
+             .tag-chip .save,
+             .tag-chip .cancel {
+                 display: none; /* Hidden by default */
+             }
+             .tag-chip-editing .edit-input,
+             .tag-chip-editing .save,
+             .tag-chip-editing .cancel {
+                 display: inline-block; /* Visible when editing */
+             }
+             .tag-chip .edit-input {
+                 border: 1px solid #ced4da;
+                 border-radius: 4px;
+                 padding: 2px 5px;
+                 font-size: inherit;
+                 background-color: white;
+             }
+
+            /* Add Tag Section Styling */
+            .add-tag-section {
+                margin-top: 15px;
+            }
+            #add-tag-form {
+                display: flex;
+                align-items: center;
+                gap: 5px;
+            }
+            #new-tag-name {
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+            }
+            /* Optional: smaller buttons for the form */
+            .btn-small {
+                padding: 6px 10px;
+                font-size: 0.9em;
             }
         </style>
 
@@ -664,6 +738,144 @@ main h1 {
                 // TODO: Add logic for table interactions (sort, edit, toggle status)
                 // TODO: Add logic for tag interactions (filter, inline edit, add, delete)
                 // TODO: Add logic for modal form submission & validation
+
+                const searchInput = document.getElementById('tag-search');
+                const chipsContainer = document.querySelector('.tag-chips-container');
+                const addTagButton = document.getElementById('add-tag-chip');
+                const addTagForm = document.getElementById('add-tag-form');
+                const newTagNameInput = document.getElementById('new-tag-name');
+                const saveNewTagButton = document.getElementById('save-new-tag');
+                const cancelAddTagButton = document.getElementById('cancel-add-tag');
+
+                // --- Tag Filtering ---
+                searchInput.addEventListener('input', (e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const tags = chipsContainer.querySelectorAll('.tag-chip:not(#add-tag-chip)'); // Exclude the add button
+                    tags.forEach(tag => {
+                        const tagName = tag.querySelector('.tag-name')?.textContent.toLowerCase() || '';
+                        const isVisible = tagName.includes(searchTerm);
+                        tag.style.display = isVisible ? '' : 'none';
+                    });
+                });
+
+                // --- Event Delegation for Edit/Delete/Save/Cancel ---
+                chipsContainer.addEventListener('click', (e) => {
+                    const target = e.target;
+                    const tagChip = target.closest('.tag-chip');
+
+                    if (!tagChip) return; // Click wasn't inside a chip
+
+                    // --- Toggle Edit Mode ---
+                    if (target.classList.contains('edit')) {
+                        switchToEditMode(tagChip);
+                    }
+
+                    // --- Cancel Edit ---
+                    if (target.classList.contains('cancel')) {
+                        cancelEditMode(tagChip);
+                    }
+
+                    // --- Save Edit (Placeholder) ---
+                    if (target.classList.contains('save')) {
+                        // Add save logic later
+                        console.log('Saving tag:', tagChip.querySelector('.edit-input').value);
+                        switchToDisplayMode(tagChip); // Temporarily switch back
+                    }
+
+                    // --- Delete Tag (Placeholder) ---
+                    if (target.classList.contains('delete')) {
+                        // Add delete confirmation and logic later
+                        console.log('Deleting tag:', tagChip.dataset.id);
+                        // tagChip.remove(); // Uncomment after adding confirmation
+                    }
+                });
+
+                // Add keydown listener for Enter/Esc in edit mode
+                chipsContainer.addEventListener('keydown', (e) => {
+                    const target = e.target;
+                    if (target.classList.contains('edit-input')) {
+                        const tagChip = target.closest('.tag-chip');
+                        if (e.key === 'Enter') {
+                            e.preventDefault(); // Prevent form submission if inside a form
+                            // Trigger save (Placeholder)
+                            console.log('Saving tag (Enter):', target.value);
+                            switchToDisplayMode(tagChip);
+                        } else if (e.key === 'Escape') {
+                            cancelEditMode(tagChip);
+                        }
+                    }
+                });
+
+                // --- Add Tag --- Show Form ---
+                addTagButton.addEventListener('click', () => {
+                    addTagButton.style.display = 'none';
+                    addTagForm.style.display = 'flex';
+                    newTagNameInput.value = ''; // Clear previous input
+                    newTagNameInput.focus();
+                });
+
+                // --- Add Tag --- Cancel ---
+                cancelAddTagButton.addEventListener('click', () => {
+                    addTagForm.style.display = 'none';
+                    addTagButton.style.display = ''; // Show the button again
+                });
+
+                // --- Add Tag --- Save (Placeholder) ---
+                saveNewTagButton.addEventListener('click', () => {
+                     const newTagName = newTagNameInput.value.trim();
+                     if (newTagName) {
+                         console.log('Adding tag:', newTagName);
+                         // TODO: Add logic to actually create the tag chip and send data
+
+                         // For now, just hide form and show button
+                         addTagForm.style.display = 'none';
+                         addTagButton.style.display = '';
+                     } else {
+                         // Optionally show an error or highlight the input
+                         newTagNameInput.focus();
+                     }
+                });
+
+                // --- Add Tag --- Keyboard (Enter/Escape in input) ---
+                newTagNameInput.addEventListener('keydown', (e) => {
+                     if (e.key === 'Enter') {
+                         e.preventDefault();
+                         saveNewTagButton.click(); // Trigger the save button click
+                     } else if (e.key === 'Escape') {
+                         cancelAddTagButton.click(); // Trigger the cancel button click
+                     }
+                });
+
+                function switchToEditMode(tagChip) {
+                    // Store original value if needed for cancel
+                    const tagNameSpan = tagChip.querySelector('.tag-name');
+                    const editInput = tagChip.querySelector('.edit-input');
+                    if (tagNameSpan && editInput) {
+                        editInput.value = tagNameSpan.textContent;
+                        tagChip.dataset.originalName = tagNameSpan.textContent; // Store original
+                        tagChip.classList.add('tag-chip-editing');
+                        editInput.focus();
+                        editInput.select();
+                    }
+                }
+
+                function switchToDisplayMode(tagChip) {
+                    const tagNameSpan = tagChip.querySelector('.tag-name');
+                    const editInput = tagChip.querySelector('.edit-input');
+                    if (tagNameSpan && editInput) {
+                        // Update tag name (normally after successful save)
+                        tagNameSpan.textContent = editInput.value;
+                        tagChip.classList.remove('tag-chip-editing');
+                    }
+                }
+
+                function cancelEditMode(tagChip) {
+                    const editInput = tagChip.querySelector('.edit-input');
+                    if (editInput && tagChip.dataset.originalName) {
+                        editInput.value = tagChip.dataset.originalName; // Restore original
+                    }
+                    tagChip.classList.remove('tag-chip-editing');
+                }
             });
         </script>
     </div>

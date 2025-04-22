@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Settings - Manage your account settings">
+    <title>Settings</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: linear-gradient(135deg, #f5f7fa, #e4e9f2); min-height: 100vh; }
+        .container { display: flex; min-height: 100vh; }
+        .header { position: fixed; top: 0; left: 0; right: 0; display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: linear-gradient(90deg, #2c3e50, #4ca1af); color: white; height: 70px; z-index: 1000; }
+        .logo { display: flex; align-items: center; }
+        .logo-icon { width: 40px; height: 40px; margin-right: 10px; background: linear-gradient(45deg, #1abc9c, #3498db, #9b59b6, #f1c40f); border-radius: 8px; display: flex; flex-wrap: wrap; overflow: hidden; /* Ensure image fits */ }
+        .logo-icon-part { width: 50%; height: 50%; }
+        .logo-text { font-weight: bold; font-size: 18px; }
+        .user-area { display: flex; align-items: center; }
+        .user-area > div { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background-color: rgba(255,255,255,0.2); margin-left: 10px; cursor: pointer; }
+        .sidebar { width: 230px; background: rgba(255,255,255,0.9); padding: 90px 15px 20px; border-right: 1px solid rgba(0,0,0,0.1); box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; position: fixed; left: 0; top: 0; bottom: 0; display: flex; flex-direction: column; }
+        .nav-item { display: flex; align-items: center; padding: 12px 15px; margin-bottom: 5px; border-radius: 8px; cursor: pointer; color: #333; transition: all 0.3s; }
+        .nav-icon { width: 24px; margin-right: 10px; display: flex; align-items: center; justify-content: center; }
+        .nav-item:hover, .nav-item.active { background-color: #bbdefb; color: #0d47a1; font-weight: bold; }
+        main { margin-left: 230px; padding: 90px 20px 20px; flex: 1; }
+        .panel { background-color: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 20px; }
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .panel-title { font-size: 20px; font-weight: bold; }
+        .filter-bar { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px; }
+        .filter-bar input, .filter-bar select, .filter-bar button { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; }
+        .expenses-table { width: 100%; border-collapse: collapse; }
+        .expenses-table th, .expenses-table td { padding: 12px 15px; border-bottom: 1px solid #e0e0e0; text-align: left; }
+        .expenses-table th { background-color: #f5f5f5; }
+        .status { padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; display: inline-block; }
+        .status-draft { background-color: #e3f2fd; color: #0d47a1; }
+        .status-submitted { background-color: #fff8e1; color: #f57f17; }
+        .status-approved { background-color: #e8f5e9; color: #2e7d32; }
+        .status-rejected { background-color: #ffebee; color: #c62828; }
+        .action-btn { background: none; border: none; color: #3498db; cursor: pointer; font-size: 14px; }
+        
+        /* Tab styling */
+        .tabs-wrapper { margin-bottom: 20px; }
+        .tabs { display: flex; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; border: 1px solid transparent; border-bottom: none; margin-bottom: -1px; font-size: 1rem; color: #333; background-color: transparent; }
+        .tab.active { border-color: #ccc; border-bottom-color: white; background-color: white; border-top-left-radius: 6px; border-top-right-radius: 6px; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        /* Basic panel styling for tab content */
+        .panel { background-color: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 20px; }
+        
+        /* Support button at bottom of sidebar */
+        .support-portal {
+            margin-top: auto;
+            padding: 15px;
+            background-color: #ebf7f7;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+            border-left: 4px solid #4ca1af;
+        }
+        
+        /* Settings Specific Styles */
+        .settings-section { margin-bottom: 30px; }
+        .settings-section h3 { margin-bottom: 15px; font-size: 18px; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .form-grid { display: grid; grid-template-columns: 150px 1fr; gap: 15px; align-items: center; margin-bottom: 20px; }
+        .form-grid label { font-weight: 500; text-align: right; }
+        .form-grid input[type="text"], .form-grid input[type="email"], .form-grid input[type="password"], .form-grid select, .form-grid textarea {
+            padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; width: 100%; max-width: 400px;
+        }
+        .avatar-upload { display: flex; align-items: center; gap: 15px; }
+        .avatar-preview { width: 80px; height: 80px; border-radius: 50%; background-color: #eee; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; text-align: center; overflow: hidden; /* Ensure image fits */ }
+        .avatar-preview img { max-width: 100%; max-height: 100%; }
+        .company-logo-preview { width: 120px; height: auto; max-height: 80px; border: 1px solid #ccc; display: flex; align-items: center; justify-content: center; font-size: 12px; color: #666; padding: 5px; background-color: #eee; overflow: hidden; /* Ensure logo fits */ }
+        .company-logo-preview img { max-width: 100%; max-height: 100%; object-fit: contain; /* Use contain for logos */ }
+        
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-secondary { background-color: #ecf0f1; color: #34495e; border: 1px solid #bdc3c7; }
+        
+        /* Approval Workflows Table */
+        .approval-workflows table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        .approval-workflows th, .approval-workflows td { padding: 10px 15px; border: 1px solid #ddd; text-align: left; vertical-align: middle; }
+        .approval-workflows th { background-color: #f9f9f9; font-weight: 600; }
+        .approval-workflows .action-btn { margin: 0 5px; }
+        
+        /* Integrations Grid & Cards */
+        .integrations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .integration-card { border: 1px solid #ddd; border-radius: 8px; padding: 20px; background-color: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+        .integration-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .integration-title { font-size: 16px; font-weight: 600; color: #333; }
+        .integration-card p { font-size: 14px; color: #666; margin-bottom: 15px; flex-grow: 1; }
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 500; text-transform: uppercase; }
+        .status-badge.active { background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+        .status-badge.inactive { background-color: #f5f5f5; color: #757575; border: 1px solid #e0e0e0; }
+        .integration-toggle { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 10px; border-top: 1px solid #eee; }
+        .integration-toggle span { font-size: 13px; color: #555; }
+        /* Toggle Switch Styles */
+        .toggle-switch { position: relative; display: inline-block; width: 40px; height: 20px; }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #4caf50; }
+        input:checked + .slider:before { transform: translateX(20px); }
+        
+        .btn { padding: 8px 15px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
+        .btn-primary { background-color: #3498db; color: white; }
+        .btn-primary:hover { background-color: #2980b9; }
+        
+        /* Add space below main heading */
+        main.main-content > h1 {
+            margin-bottom: 25px; /* Adjust value as needed */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <div class="logo-icon-part" style="background-color: #1abc9c;"></div>
+                    <div class="logo-icon-part" style="background-color: #3498db;"></div>
+                    <div class="logo-icon-part" style="background-color: #9b59b6;"></div>
+                    <div class="logo-icon-part" style="background-color: #f1c40f;"></div>
+                </div>
+                <div class="logo-text">EXPENSE MANAGEMENT</div>
+            </div>
+            <div class="user-area">
+                <div class="notification-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                </div>
+                <div class="user-profile">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                </div>
+                <div class="more-options">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="1"></circle>
+                        <circle cx="19" cy="12" r="1"></circle>
+                        <circle cx="5" cy="12" r="1"></circle>
+                    </svg>
+                </div>
+            </div>
+        </header>
+        <aside class="sidebar">
+            <nav aria-label="Main navigation">
+                <div class="nav-item" id="dashboard-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </div>
+                    <span>Dashboard</span>
+                </div>
+
+                <div class="nav-item" id="expenses-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                            <line x1="2" y1="10" x2="22" y2="10"></line>
+                        </svg>
+                    </div>
+                    <span>My Expenses</span>
+                </div>
+
+                <div class="nav-item" id="approvals-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </div>
+                    <span>Approvals</span>
+                </div>
+
+                <div class="nav-item" id="travel-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                            <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                        </svg>
+                    </div>
+                    <span>Travel Orders</span>
+                </div>
+
+                <div class="nav-item" id="reports-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                    </div>
+                    <span>Reports</span>
+                </div>
+
+                <div class="nav-item" id="categories-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </div>
+                    <span>Categories</span>
+                </div>
+
+                <div class="nav-item active" id="settings-nav">
+                    <div class="nav-icon" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 7h-9"></path>
+                            <path d="M14 17H5"></path>
+                            <circle cx="17" cy="17" r="3"></circle>
+                            <circle cx="7" cy="7" r="3"></circle>
+                        </svg>
+                    </div>
+                    <span>Settings</span>
+                </div>
+            </nav>
+
+            <div class="support-portal">Need Help? Contact Support</div>
+        </aside>
+        <main class="main-content">
+            <h1>Settings</h1>
+            <div class="tabs-wrapper">
+                <div class="tabs">
+                    <button class="tab active" data-tab="user-profile-pane">User Profile</button>
+                    <button class="tab" data-tab="company-settings-pane">Company Settings</button>
+                    <button class="tab" data-tab="approval-workflows-pane">Approval Workflows</button>
+                    <button class="tab" data-tab="integrations-pane">Integrations</button>
+                </div>
+
+                <!-- User Profile Tab -->
+                <div id="user-profile-pane" class="tab-content active panel">
+                    <form id="user-profile-form">
+                        <div class="settings-section">
+                            <h3>Personal Information</h3>
+                            <div class="form-grid">
+                                <label for="user-name">Name:</label>
+                                <input type="text" id="user-name" name="userName" value="John Doe" required>
+                                <label for="user-email">Email:</label>
+                                <input type="email" id="user-email" name="userEmail" value="john.doe@example.com" readonly style="background:#eee;">
+                                <label for="user-title">Job Title:</label>
+                                <input type="text" id="user-title" name="userTitle" value="Software Engineer">
+                            </div>
+                        </div>
+                        <div class="settings-section">
+                            <h3>Profile Picture</h3>
+                            <div class="avatar-upload">
+                                <div class="avatar-preview" id="avatar-preview-container">Preview</div>
+                                <input type="file" id="avatar-file" name="avatarFile" accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('avatar-file').click();">Upload Avatar</button>
+                            </div>
+                        </div>
+                         <div class="settings-section">
+                            <h3>Change Password</h3>
+                             <div class="form-grid">
+                                 <label for="current-password">Current Password:</label>
+                                 <input type="password" id="current-password" name="currentPassword">
+                                 <label for="new-password">New Password:</label>
+                                 <input type="password" id="new-password" name="newPassword">
+                                 <label for="confirm-password">Confirm New Password:</label>
+                                 <input type="password" id="confirm-password" name="confirmPassword">
+                             </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Profile Settings</button>
+                    </form>
+                </div>
+
+                <!-- Company Settings Tab -->
+                <div id="company-settings-pane" class="tab-content panel"> 
+                      <!-- Content will be added here -->
+                     <form id="company-settings-form">
+                        <div class="settings-section">
+                            <h3>Basic Information</h3>
+                            <div class="form-grid">
+                                <label for="company-name">Company Name:</label>
+                                <input type="text" id="company-name" name="companyName" value="Example Corp" required>
+                                <label for="company-address">Address:</label>
+                                <textarea id="company-address" name="companyAddress" rows="3">123 Example St, City, Country</textarea>
+                            </div>
+                        </div>
+                        <div class="settings-section">
+                            <h3>Financial Settings</h3>
+                            <div class="form-grid">
+                                <label for="company-currency">Default Currency:</label>
+                                <select id="company-currency" name="companyCurrency">
+                                    <option value="USD" selected>USD ($)</option>
+                                    <option value="EUR">EUR (€)</option>
+                                    <option value="GBP">GBP (£)</option>
+                                    <option value="RSD">RSD (дин.)</option> <!-- Added RSD -->
+                                </select>
+                                <label for="company-vat">VAT Rate (%):</label>
+                                <input type="number" id="company-vat" name="companyVat" value="20" min="0" max="100" step="0.1">
+                            </div>
+                        </div>
+                         <div class="settings-section">
+                            <h3>Company Logo</h3>
+                            <div class="avatar-upload"> <!-- Reusing avatar styles for layout consistency -->
+                                <div class="company-logo-preview" id="logo-preview-container">Logo Preview</div>
+                                <input type="file" id="logo-file" name="logoFile" accept="image/*" style="display: none;">
+                                <button type="button" class="btn btn-secondary" onclick="document.getElementById('logo-file').click();">Upload Logo</button>
+                            </div>
+                        </div>
+                         <button type="submit" class="btn btn-primary">Save Company Settings</button>
+                     </form>
+                </div>
+
+                <!-- Approval Workflows Tab -->
+                <div id="approval-workflows-pane" class="tab-content panel approval-workflows">
+                    <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center;"> <!-- Reusing panel-header class idea -->
+                        <h3 style="margin-bottom: 0;">Defined Approval Levels</h3>
+                        <button class="btn btn-primary">+ Add New Rule</button> <!-- Later triggers modal -->
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Level Name</th>
+                                <th>Condition (e.g., Amount)</th>
+                                <th>Approver(s)</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Standard Expenses</td>
+                                <td>Amount &lt;= $500</td>
+                                <td>Direct Manager</td>
+                                <td>
+                                    <button class="action-btn">Edit</button> |
+                                    <button class="action-btn">Delete</button>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td>High Value Expenses</td>
+                                <td>Amount &gt; $500 AND Amount &lt;= $5000</td>
+                                <td>Direct Manager + Finance Dept</td>
+                                 <td>
+                                    <button class="action-btn">Edit</button> |
+                                    <button class="action-btn">Delete</button>
+                                </td>
+                            </tr>
+                             <tr>
+                                <td>Capital Expenditure</td>
+                                <td>Amount &gt; $5000</td>
+                                <td>Direct Manager + Finance Dept + CEO</td>
+                                 <td>
+                                    <button class="action-btn">Edit</button> |
+                                    <button class="action-btn">Delete</button>
+                                </td>
+                            </tr>
+                            <!-- Add more rows dynamically -->
+                        </tbody>
+                    </table>
+                    <!-- Modal for adding/editing rules will be placed here -->
+                </div>
+
+                <!-- Integrations Tab -->
+                <div id="integrations-pane" class="tab-content panel integrations">
+                     <!-- Content will be added here -->
+                      <h3>Connect External Systems</h3>
+                      <p>Enable integrations to streamline your workflow.</p>
+                      <div class="integrations-grid">
+                        <div class="integration-card">
+                            <div class="integration-header">
+                                <span class="integration-title">ERP System (e.g., SAP)</span>
+                                <span class="status-badge inactive">Inactive</span>
+                            </div>
+                            <p>Sync expense data, vendors, and payment information automatically with your Enterprise Resource Planning system.</p>
+                            <div class="integration-toggle">
+                                <span>Enable Integration:</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="erp-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="integration-card">
+                             <div class="integration-header">
+                                <span class="integration-title">Single Sign-On (SSO)</span>
+                                <span class="status-badge active">Active</span>
+                            </div>
+                            <p>Allow users to log in securely using your company's existing identity provider (e.g., Okta, Azure AD).</p>
+                             <div class="integration-toggle">
+                                <span>Enable Integration:</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="sso-toggle" checked>
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                         <div class="integration-card">
+                             <div class="integration-header">
+                                <span class="integration-title">Bank Connection</span>
+                                <span class="status-badge inactive">Inactive</span>
+                            </div>
+                            <p>Import corporate card transactions or bank statements directly to simplify reconciliation and expense creation.</p>
+                            <div class="integration-toggle">
+                                <span>Enable Integration:</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="bank-toggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Add more integration cards if needed -->
+                     </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Deactivate all tabs and content
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(c => c.classList.remove('active'));
+
+                    // Activate the clicked tab and its content
+                    tab.classList.add('active');
+                    const targetPaneId = tab.getAttribute('data-tab');
+                    const targetPane = document.getElementById(targetPaneId);
+                    if (targetPane) {
+                        targetPane.classList.add('active');
+                    }
+                });
+            });
+
+            // Ensure the first tab is active on load (optional, but good practice)
+            if (tabs.length > 0) {
+                 tabs[0].click(); // Simulate click on the first tab
+            }
+        });
+    </script>
+
+    <script>
+        // Basic Avatar Preview
+        const avatarFileInput = document.getElementById('avatar-file');
+        const avatarPreviewContainer = document.getElementById('avatar-preview-container');
+
+        if (avatarFileInput && avatarPreviewContainer) {
+            avatarFileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        avatarPreviewContainer.innerHTML = `<img src="${e.target.result}" alt="Avatar Preview">`;
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    avatarPreviewContainer.innerHTML = 'Preview'; // Reset if no file selected
+                }
+            });
+        }
+
+        // Handle form submission (placeholder)
+        const userProfileForm = document.getElementById('user-profile-form');
+        if (userProfileForm) {
+             userProfileForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // Prevent actual form submission for now
+                console.log('User profile form submitted. Data would be sent here.');
+                // Add logic here to collect data and send it via fetch/AJAX
+                alert('Profile settings saved (simulated).');
+             });
+        }
+    </script>
+
+    <script>
+        // Basic Logo Preview (similar to avatar)
+        const logoFileInput = document.getElementById('logo-file');
+        const logoPreviewContainer = document.getElementById('logo-preview-container');
+
+        if (logoFileInput && logoPreviewContainer) {
+            logoFileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        logoPreviewContainer.innerHTML = `<img src="${e.target.result}" alt="Logo Preview">`;
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    logoPreviewContainer.innerHTML = 'Logo Preview'; // Reset
+                }
+            });
+        }
+
+        // Handle company settings form submission (placeholder)
+        const companySettingsForm = document.getElementById('company-settings-form');
+        if (companySettingsForm) {
+             companySettingsForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                console.log('Company settings form submitted.');
+                alert('Company settings saved (simulated).');
+             });
+        }
+    </script>
+
+    <script>
+        // Basic toggle functionality simulation (updates badge text)
+        document.querySelectorAll('.toggle-switch input[type="checkbox"]').forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const card = this.closest('.integration-card');
+                const badge = card.querySelector('.status-badge');
+                if (this.checked) {
+                    badge.textContent = 'Active';
+                    badge.classList.remove('inactive');
+                    badge.classList.add('active');
+                } else {
+                    badge.textContent = 'Inactive';
+                    badge.classList.remove('active');
+                    badge.classList.add('inactive');
+                }
+                console.log(`${this.id} toggled to ${this.checked}`);
+                // Add logic here to actually save the integration state
+            });
+        });
+    </script>
+ </body>
+ </html>
