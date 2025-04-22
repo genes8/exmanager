@@ -6,12 +6,12 @@ ExManager je SME Expense Management Solution koji omogućava efikasno upravljanj
 
 - `prototypes/` – HTML prototipovi korisničkog interfejsa:
     - approvals.html – Pregled i odobravanje zahteva
-    - categories.html – Kategorizacija troškova - nije uradjen
+    - categories.html – Kategorizacija troškova 
     - expense-dashboard.html – Dashboard za troškove
     - expense-detail.html – Detalji pojedinačnog troška - nije uradjen
     - my-expenses.html – Moji troškovi
     - reports.html – Izveštaji
-    - settings.html – Podešavanja - nije uradjen
+    - settings.html – Podešavanja 
     - template.html – Osnovni template
     - travel-orders.html – Putni nalozi
 - `png/` – Slike i grafički elementi
