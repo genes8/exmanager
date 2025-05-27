@@ -97,7 +97,7 @@ const ExpenseForm = ({ user, language }) => {
         if (response.data.ocr_data.detected_dates && response.data.ocr_data.detected_dates.length > 0) {
           try {
             const dateStr = response.data.ocr_data.detected_dates[0];
-            const detectedDate = new Date(dateStr.replace(/(\d{1,2})[/.(\d{1,2})[/.(\d{2,4})/, '$3-$2-$1'));
+            const detectedDate = new Date(dateStr.replace(/(\d{1,2})[/.](\d{1,2})[/.](\d{2,4})/, '$3-$2-$1'));
             if (!isNaN(detectedDate.getTime())) {
               setFormData(prev => ({
                 ...prev,
