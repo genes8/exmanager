@@ -23,22 +23,85 @@ const Login = ({ onLogin, language }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    
+    console.log('Login attempt with data:', formData);
 
     try {
+      console.log('Sending login request to:', '/api/auth/token');
       const response = await apiEndpoints.login(formData);
+      console.log('Login response:', response.data);
+      
+      // Proveravamo da li imamo sve potrebne podatke u odgovoru
+      if (!response.data || !response.data.access_token || !response.data.user) {
+        console.error('Nedostaju podaci u odgovoru:', response.data);
+        toast.error('Nepotpun odgovor sa servera');
+        setLoading(false);
+        return;
+      }
+      
       const { access_token, user } = response.data;
+      console.log('Uspešan login, podaci korisnika:', user);
+      
+      // Posebna obrada za administratorsku ulogu
+      if (user.role === 'admin') {
+        console.log('Administratorska uloga detektovana:', user);
+        
+        // Direktno postavljamo podatke u localStorage
+        try {
+          localStorage.setItem('expense_auth_token', access_token);
+          localStorage.setItem('expense_user_data', JSON.stringify(user));
+          console.log('Admin podaci direktno sačuvani u localStorage');
+          
+          // Direktno ažuriramo stanje aplikacije
+          onLogin(user);
+          
+          // Direktno navigiramo na dashboard
+          toast.success('Administrator uspešno prijavljen!');
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 500);
+          
+          return; // Prekidamo dalju obradu za admina
+        } catch (error) {
+          console.error('Greška pri direktnom čuvanju admin podataka:', error);
+        }
+      }
       
       // Store authentication data
       authService.setAuth(access_token, user);
+      console.log('Token i podaci korisnika sačuvani u localStorage');
       
       // Update app state
       onLogin(user);
+      console.log('App state ažuriran sa podacima korisnika');
       
-      toast.success(t('login_success', language));
-      navigate('/dashboard');
+      // Dodajemo timeout da bi se stanje ažuriralo pre navigacije
+      console.log('Priprema za navigaciju na dashboard...');
+      setTimeout(() => {
+        toast.success(t('login_success', language));
+        console.log('Navigacija na /dashboard');
+        navigate('/dashboard');
+      }, 300);
     } catch (error) {
       console.error('Login error:', error);
-      const errorMessage = error.response?.data?.detail || t('invalid_credentials', language);
+      console.error('Error details:', error.response?.data);
+      console.error('Error status:', error.response?.status);
+      console.error('Error headers:', error.response?.headers);
+      
+      // Detaljnija obrada greške
+      let errorMessage = t('invalid_credentials', language);
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Pogrešan email ili lozinka';
+        } else if (error.response.status === 422) {
+          errorMessage = 'Neispravan format podataka';
+        } else if (error.response.data?.detail) {
+          errorMessage = error.response.data.detail;
+        }
+      } else if (error.request) {
+        errorMessage = 'Server nije odgovorio. Proverite internet konekciju.';
+      }
+      
       toast.error(errorMessage);
     } finally {
       setLoading(false);
