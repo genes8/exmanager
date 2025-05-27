@@ -27,15 +27,18 @@ const Login = ({ onLogin, language }) => {
     console.log('Login attempt with data:', formData);
 
     try {
-      console.log('Sending login request to:', '/api/auth/token');
+      // Šaljemo zahtev za login
+      console.log('Šaljem login zahtev...');
       const response = await apiEndpoints.login(formData);
       console.log('Login response:', response.data);
+      console.log('Response headers:', response.headers);
+      console.log('Response status:', response.status);
       
       // Proveravamo da li imamo sve potrebne podatke u odgovoru
       if (!response.data || !response.data.access_token || !response.data.user) {
-        console.error('Nedostaju podaci u odgovoru:', response.data);
-        toast.error('Nepotpun odgovor sa servera');
-        setLoading(false);
+ // Check if we have all required data in the response
+ console.error('Missing data in response:', response.data);
+ toast.error('Incomplete server response');
         return;
       }
       
@@ -46,38 +49,39 @@ const Login = ({ onLogin, language }) => {
       if (user.role === 'admin') {
         console.log('Administratorska uloga detektovana:', user);
         
-        // Direktno postavljamo podatke u localStorage
-        try {
-          localStorage.setItem('expense_auth_token', access_token);
-          localStorage.setItem('expense_user_data', JSON.stringify(user));
-          console.log('Admin podaci direktno sačuvani u localStorage');
-          
-          // Direktno ažuriramo stanje aplikacije
-          onLogin(user);
-          
-          // Direktno navigiramo na dashboard
-          toast.success('Administrator uspešno prijavljen!');
-          setTimeout(() => {
-            window.location.href = '/dashboard';
-          }, 500);
-          
-          return; // Prekidamo dalju obradu za admina
-        } catch (error) {
-          console.error('Greška pri direktnom čuvanju admin podataka:', error);
-        }
+        console.log('Čuvam admin podatke u localStorage...');
+        authService.setAuth(access_token, user);
+        
+        console.log('Pozivam onLogin za admina...');
+        onLogin(user);
+        
+        console.log('Prikazujem toast poruku za admina...');
+        toast.success('Administrator successfully logged in!');
+        
+        console.log('Postavljam timeout za navigaciju admina...');
+        setTimeout(() => {
+          console.log('Navigiram admina na dashboard...');
+          navigate('/dashboard');
+        }, 500);
+        
+        console.log('Završavam obradu za admina');
+        return;
       }
       
       // Store authentication data
+      console.log('Čuvam podatke običnog korisnika u localStorage...');
       authService.setAuth(access_token, user);
       console.log('Token i podaci korisnika sačuvani u localStorage');
       
       // Update app state
+      console.log('Pozivam onLogin za običnog korisnika...');
       onLogin(user);
       console.log('App state ažuriran sa podacima korisnika');
       
       // Dodajemo timeout da bi se stanje ažuriralo pre navigacije
       console.log('Priprema za navigaciju na dashboard...');
       setTimeout(() => {
+        console.log('Prikazujem toast poruku za običnog korisnika...');
         toast.success(t('login_success', language));
         console.log('Navigacija na /dashboard');
         navigate('/dashboard');
