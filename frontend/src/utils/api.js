@@ -40,7 +40,18 @@ api.interceptors.response.use(
 // API endpoints
 export const apiEndpoints = {
   // Authentication
-  login: (credentials) => api.post('/auth/token', new URLSearchParams(credentials)),
+  login: (credentials) => {
+    // FastAPI OAuth2 očekuje x-www-form-urlencoded format sa username i password poljima
+    const params = new URLSearchParams();
+    params.append('username', credentials.username);
+    params.append('password', credentials.password);
+    
+    return api.post('/auth/token', params, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    });
+  },
   register: (userData) => api.post('/auth/register', userData),
   getCurrentUser: () => api.get('/auth/me'),
 

@@ -40,7 +40,15 @@ function App() {
   }, []);
 
   const handleLogin = (userData) => {
+    console.log('handleLogin pozvan sa podacima:', userData);
+    
+    // Posebna provera za administratorsku ulogu
+    if (userData && userData.role === 'admin') {
+      console.log('Administrator se prijavljuje:', userData);
+    }
+    
     setUser(userData);
+    console.log('User state postavljen u App komponenti');
   };
 
   const handleLogout = () => {
