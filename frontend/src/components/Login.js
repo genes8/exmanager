@@ -24,7 +24,10 @@ const Login = ({ onLogin, language }) => {
     e.preventDefault();
     setLoading(true);
     
-    console.log('Login attempt with data:', formData);
+const DEBUG = process.env.NODE_ENV === 'development';
+const debugLog = DEBUG ? console.log : () => {};
+
+    debugLog('Login attempt with data:', formData);
 
     try {
       // Šaljemo zahtev za login
